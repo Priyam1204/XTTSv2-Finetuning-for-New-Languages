@@ -52,6 +52,8 @@ class DVAETrainerArgs:
 
 def train(output_path, train_csv_path, eval_csv_path="", language="en", lr=5e-6, num_epochs=5, batch_size=512):
     dvae_pretrained = os.path.join(output_path, 'XTTS_v2.0_original_model_files/dvae.pth')
+    #save fine tuned dvae seperately
+    dvae_finetuned = os.path.join(output_path, 'XTTS_v2.0_original_model_files/dvae_finetuned.pth') 
     mel_norm_file = os.path.join(output_path, 'XTTS_v2.0_original_model_files/mel_stats.pth')
 
     now = datetime.datetime.now()
@@ -194,10 +196,10 @@ def train(output_path, train_csv_path, eval_csv_path="", language="en", lr=5e-6,
             eval_loss = eval_loss/len(eval_data_loader)
             if eval_loss < best_loss:
                 best_loss = eval_loss
-                torch.save(dvae.state_dict(), dvae_pretrained)
+                torch.save(dvae.state_dict(), dvae_finetuned)
             print(f"#######################################\nepoch: {i}\tEVAL loss: {eval_loss}\n#######################################")
 
-    print(f'Checkpoint saved at {dvae_pretrained}')
+    print(f'Checkpoint saved at {dvae_finetuned}')
 
 
 if __name__ == "__main__":
