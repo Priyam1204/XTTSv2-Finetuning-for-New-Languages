@@ -6,7 +6,8 @@ checkpoints/
 datasets/
 large-datasets/
 wandb/
-*.ipynb
+phoneme_comparison/
+phoneme_results/
 *.wav
 test.py
 cps/

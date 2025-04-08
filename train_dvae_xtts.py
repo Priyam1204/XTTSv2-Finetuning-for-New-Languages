@@ -16,6 +16,10 @@ from typing import Optional
 import os
 import datetime
 from transformers import HfArgumentParser
+from torch.utils.tensorboard import SummaryWriter
+import datetime, os
+
+
 
 @dataclass
 class DVAETrainerArgs:
@@ -51,6 +55,15 @@ class DVAETrainerArgs:
 
 
 def train(output_path, train_csv_path, eval_csv_path="", language="en", lr=5e-6, num_epochs=5, batch_size=512):
+    
+    now = datetime.datetime.now()
+    now_without_ms = now.replace(microsecond=0)
+    logs_path = os.path.join(output_path, f"dvae_fine_tuning_logs_{now_without_ms}")
+    os.makedirs(logs_path, exist_ok=True)
+
+    tb_writer = SummaryWriter(log_dir=logs_path)
+    
+
     dvae_pretrained = os.path.join(output_path, 'XTTS_v2.0_original_model_files/dvae.pth')
     #save fine tuned dvae seperately
     dvae_finetuned = os.path.join(output_path, 'XTTS_v2.0_original_model_files/dvae_finetuned.pth') 
@@ -175,6 +188,11 @@ def train(output_path, train_csv_path, eval_csv_path="", language="en", lr=5e-6,
             total_loss.backward()
             clip_grad_norm_(dvae.parameters(), GRAD_CLIP_NORM)
             opt.step()
+            #Log losses to TensorBoard
+            global_step = i * len(train_data_loader) + cur_step
+            tb_writer.add_scalar("Train/Total_Loss", total_loss.item(), global_step)
+            tb_writer.add_scalar("Train/Recon_Loss", recon_loss.item(), global_step)
+            tb_writer.add_scalar("Train/Commit_Loss", commitment_loss.item(), global_step)
 
             log = {'epoch': i,
                 'cur_step': cur_step,
